@@ -1,0 +1,78 @@
+#!/bin/python3
+# -*- coding: utf-8 -*-
+# Coded By Kuduxaaa
+
+import sys
+import os
+
+osname = os.name
+pip_prefix = 'pip' if osname == 'nt' else 'pip3'
+
+def clear():
+    os.system('cls' if osname == 'nt' else 'clear')
+
+try:
+    import pymysql
+
+    from app import app, db
+except ImportError:
+    print('[-] Modules not found')
+
+    ask = input('[?] Do you want to install automatically? (Y/n): ')
+
+    if ask.lower() in ['y', 'yes', 'yeah', 'ye']:
+        if os.path.exists('requirements.txt'):
+            print('[+] Ok, installing modules...\n\n')
+            os.system(f'{pip_prefix} install -r requirements.txt')
+
+            import pymysql
+            
+            from app import app, db
+
+            clear()
+        else:
+            sys.exit('[-] Woops: requirements file not found\n' \
+                     '[*] Please reclone repositoy and try again')
+    else:
+        sys.exit('[+] Ok, please install modules and try again')
+
+
+pymysql.install_as_MySQLdb()
+
+def show_help():
+    print('''
+run         -  Run webserver
+migrate     -  Make migrations in database with models
+install     -  Install requirements automatically
+help        -  Show this message and exit
+        ''')
+
+try:
+    action = sys.argv[1]
+except IndexError:
+    sys.exit('[!] Please run correct\n' \
+             '[!] Type: python3 manager.py help')
+
+def main(action):    
+    if action in ['run', 'serv', 'serve', 'server']:
+        app.run()
+
+    elif action in ['migrate', 'migration', 'initdb']:
+        try:
+            db.create_all()
+        except Exception as e:
+            print(f'\n[-] Database error: {e}')
+
+    elif action == 'help':
+        show_help()
+
+    elif action == 'install':
+        if os.path.exists('requirements.txt'):
+            print('[+] Ok, installing modules...\n\n')
+            os.system(f'{pip_prefix} install -r requirements.txt')
+        else:
+            sys.exit('[-] Woops: requirements file not found\n' \
+                     '[*] Please reclone repositoy and try again')
+    
+if __name__ == '__main__':
+    main(action)
